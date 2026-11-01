@@ -7,8 +7,8 @@ import numpy as np
 
 # unit under test
 def compute_euclidean_distance(v1, v2):
-    # TODO 
-    pass
+    return np.sqrt(sum([(v1[i] - v2[i]) ** 2 for i in range(len(v1))]))
+
 
 # unit test
 def test_compute_euclidean_distance():
@@ -16,9 +16,21 @@ def test_compute_euclidean_distance():
     np.random.seed(0)
     v1 = np.random.random(100)
     v2 = np.random.random(100)
-    # TODO
-    pass
+    dist = compute_euclidean_distance(v1, v2)
+    # let's test against scipy
+    sp_dist = euclidean(v1, v2)
+    assert np.isclose(dist, sp_dist)
 
+# Randomly shuffles a list in place.
+# If a parallel list is provided, applies the same swaps to keep corresponding elements aligned.    
+def randomize_in_place(alist, parallel_list=None):
+    for i in range(len(alist)):
+        # generate a random index to swap this value at i with
+        rand_index = np.random.randint(0, len(alist)) # rand int in [0, len(alist))
+        # do the swap
+        alist[i], alist[rand_index] = alist[rand_index], alist[i]
+        if parallel_list is not None:
+            parallel_list[i], parallel_list[rand_index] = parallel_list[rand_index], parallel_list[i]
 
 def main():
     # Starting with PA4, we will implement common ML algorithms
@@ -79,6 +91,12 @@ def main():
     # 1. normalize if needed (not needed for dataset, assumed [0, 10])
     # 2. TODO calculate distances between each training set instance and the unseen instance
     row_indexes_dists = [] # list of tuple pairs (row index, dist)
+
+    for i, row in enumerate(X_train):
+        distance= compute_euclidean_distance(row, unseen_instance)
+        row_indexes_dists.append((i,distance))
+    print("Index and Distance", row_indexes_dists)
+
     
 
     # 3.  Sort by distance (ascending) 
@@ -86,16 +104,23 @@ def main():
     # and use that for sorting
     # 4. TODO Select the k nearest neighbors
     k = 3 
+    top_k = row_indexes_dists[:k]
+    for i in top_k:
+        print(i)
     
 
     # 5.TODO Extract the class labels of neighbors neigbors from y_train
     top_k_labels = []
+    for i, row in top_k:
+        top_k_labels.append(y_train[i])
+    print(top_k_labels)
 
 
     # 6. TODO Predict using Majority voting
+    prediction= max(top_k_labels, key=top_k_labels.count)
     
 
-    #print("Predicted class:", prediction)
+    print("Predicted class:", prediction)
 
     # check work against sci-kit learn
     knn_clf = KNeighborsClassifier(n_neighbors=3, metric="euclidean")
@@ -103,6 +128,13 @@ def main():
     distances, indexes = knn_clf.kneighbors([unseen_instance])
     print(distances)
     print(indexes)
+
+    np.random.seed(0)
+    print("randomizing in place")
+    randomize_in_place(X_train, y_train)
+    for i in range(len(X_train)):
+        # check they are still parallel
+        print(X_train[i], y_train[i])
 
 
 
